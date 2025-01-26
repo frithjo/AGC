@@ -1,29 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-
-type Message = {
-  id: number;
-  text: string;
-  sender: "user" | "bot";
-};
+import { Message, useChat } from "ai/react";
 
 export function ChatUI() {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState("");
+  const [mainMessages, setMainMessages] = useState<Message[]>([]);
 
-  const handleSend = () => {
-    if (input.trim()) {
-      setMessages([
-        ...messages,
-        { id: Date.now(), text: input, sender: "user" },
-      ]);
-      setInput("");
-    }
-  };
+  const { messages, input, handleInputChange, handleSubmit } = useChat({
+    api: "/api/chat",
+  });
+
+  // useEffect(() => {
+  //   setMainMessages([...mainMessages, ...messages]);
+  // }, [messages]);
 
   return (
     <div className="flex flex-col h-full">
@@ -32,17 +24,17 @@ export function ChatUI() {
           <div
             key={message.id}
             className={`mb-4 ${
-              message.sender === "user" ? "text-right" : "text-left"
+              message.role === "user" ? "text-right" : "text-left"
             }`}
           >
             <span
               className={`inline-block p-2 rounded-lg ${
-                message.sender === "user"
+                message.role === "user"
                   ? "bg-blue-500 text-white"
                   : "bg-gray-200 text-black"
               }`}
             >
-              {message.text}
+              {message.content}
             </span>
           </div>
         ))}
@@ -51,11 +43,11 @@ export function ChatUI() {
         <div className="flex space-x-2">
           <Input
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={handleInputChange}
             placeholder="Type your message..."
-            onKeyPress={(e) => e.key === "Enter" && handleSend()}
+            onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
           />
-          <Button onClick={handleSend}>Send</Button>
+          <Button onClick={handleSubmit}>Send</Button>
         </div>
       </div>
     </div>
