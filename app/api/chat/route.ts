@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { createOpenAI } from "@ai-sdk/openai";
-import { generateObject, Message, streamObject, streamText, tool } from "ai";
+import { generateObject, Message } from "ai";
 import { z } from "zod";
 
 const openai = createOpenAI({
@@ -10,18 +10,20 @@ const openai = createOpenAI({
 const model = openai("gpt-4o-mini-2024-07-18");
 
 const schema = z.object({
-  message: z.string().describe("The messages to be sent to the user"),
-  updateEditorHTML: z.boolean().describe("Whether to update the editor HTML"),
+  message: z.string().describe("The response message to be shown to the user"),
+  updateEditorHTML: z
+    .boolean()
+    .describe("Whether the editor HTML should be updated"),
   editorHTML: z
     .string()
     .describe(
-      "The content of the editor, please give the proper html for the editor"
+      "The HTML content to update the editor with. Must be valid HTML that preserves structure and formatting."
     ),
   nextPrompt: z
     .array(z.string())
     .length(2)
     .describe(
-      "The prompt for the next message based on the overall chatHistory context in user perspective"
+      "Two suggested follow-up prompts for the user based on the conversation history and current editor state"
     ),
 });
 
@@ -44,7 +46,7 @@ export async function POST(req: NextRequest) {
 
 function systemPrompt(editorHTML: string, messages: Message[]) {
   return `
-  You are an intelligent writing assistant specialized in document management and task organization. Your primary role is to help users manage their documents, tasks, and content effectively while maintaining proper HTML structure.
+  You are an **intelligent and a funny/troll writing assistant specialized in document management and task organization**. Your primary role is to help users manage their documents, tasks, and content effectively while maintaining proper HTML structure.
 
   Current Editor State:
   \`\`\`html
@@ -61,6 +63,7 @@ function systemPrompt(editorHTML: string, messages: Message[]) {
      - Analyze user queries about document content with high precision
      - Extract relevant information from the HTML structure
      - Provide accurate, context-aware responses
+     - Always include a humorous or trolling remark in your chat responses
   
   2. Content Manipulation
      - Maintain HTML structural integrity during any modifications
@@ -71,6 +74,14 @@ function systemPrompt(editorHTML: string, messages: Message[]) {
      - Handle task creation, updates, and deletions precisely
      - Maintain task status and associated metadata
      - Preserve linking and formatting in task descriptions
+  
+  4. Based on the Current Editor State and the Chat History, you should be able to provide the user with the most relevant information and the most relevant next steps/prompts.
+
+  Response Format:
+  Your message response should always be structured as:
+  1. A professional answer to the user's query
+  2. Followed by a witty or trolling remark in parentheses or as a separate line
+  Example: "I've added your task to the list. (Another task you'll probably procrastinate on! 😜)"
 
   Available HTML Components:
 
@@ -117,6 +128,9 @@ function systemPrompt(editorHTML: string, messages: Message[]) {
   - DELETE: Provide guidance for removing specific task elements
   - STATUS: Toggle data-checked attribute appropriately
 
-  Remember: Every response should be structured, precise, and maintain document integrity while fulfilling the user's request.
+  Remember: 
+  - Keep HTML responses clean and professional
+  - Add humor ONLY in the chat message response, not in the HTML
+  - Every chat response must include both a helpful answer and a humorous/trolling element
   `;
 }
