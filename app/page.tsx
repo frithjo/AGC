@@ -9,7 +9,6 @@ import {
 import { useState, useEffect, useCallback } from "react";
 import { DEFAULT_HTML } from "@/components/constants";
 import { TiptapEditor } from "@/components/tiptap";
-import { useThrottle } from "@/components/tiptap/editor/hooks/use-throttle";
 
 export default function Home() {
   const [initialContent, setInitialContent] = useState<string>(() => {
@@ -21,15 +20,24 @@ export default function Home() {
   });
   const [isSaving, setIsSaving] = useState(false);
 
-  const debouncedSave = useThrottle((content: string) => {
-    setIsSaving(true);
-    localStorage.setItem("editorContent", content);
-    setIsSaving(false);
-  }, 500);
+  const throttledSave = useCallback((content: string) => {
+    let timeoutId: NodeJS.Timeout;
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+      setIsSaving(true);
+      timeoutId = setTimeout(() => {
+        localStorage.setItem("editorContent", content);
+        setIsSaving(false);
+      }, 500); // Save after 500ms of no updates
+    };
+  }, []);
 
   useEffect(() => {
-    debouncedSave(initialContent);
-  }, [initialContent, debouncedSave]);
+    const saveToStorage = throttledSave(initialContent);
+    saveToStorage();
+  }, [initialContent, throttledSave]);
 
   return (
     <div className="h-screen font-sans">
