@@ -9,19 +9,19 @@ import {
 } from "@/components/ui/resizable";
 import { useState, useEffect, useCallback } from "react";
 import { JSONContent } from "novel";
-import { DEFAULT_CONTENT } from "@/components/constants";
+import { DEFAULT_HTML } from "@/components/constants";
 
 export default function Home() {
-  const [initialContent, setInitialContent] = useState<JSONContent>(() => {
+  const [initialContent, setInitialContent] = useState<string>(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("editorContent");
-      return saved ? JSON.parse(saved) : DEFAULT_CONTENT;
+      return saved ? saved : DEFAULT_HTML;
     }
-    return DEFAULT_CONTENT;
+    return DEFAULT_HTML;
   });
   const [isSaving, setIsSaving] = useState(false);
 
-  const throttledSave = useCallback((content: JSONContent) => {
+  const throttledSave = useCallback((content: string) => {
     let timeoutId: NodeJS.Timeout;
     return () => {
       if (timeoutId) {
@@ -29,7 +29,7 @@ export default function Home() {
       }
       setIsSaving(true);
       timeoutId = setTimeout(() => {
-        localStorage.setItem("editorContent", JSON.stringify(content));
+        localStorage.setItem("editorContent", content);
         setIsSaving(false);
       }, 500); // Save after 500ms of no updates
     };

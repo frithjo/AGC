@@ -2,12 +2,7 @@
 
 import { defaultExtensions } from "./extensions";
 import { useState } from "react";
-import {
-  EditorContent,
-  EditorRoot,
-  type JSONContent,
-  handleCommandNavigation,
-} from "novel";
+import { EditorContent, EditorRoot, handleCommandNavigation } from "novel";
 import { Loader2, CheckIcon } from "lucide-react";
 
 export function Editor({
@@ -15,10 +10,11 @@ export function Editor({
   setEditorContent,
   isSaving,
 }: {
-  editorContent: JSONContent;
-  setEditorContent: (content: JSONContent) => void;
+  editorContent: string;
+  setEditorContent: (content: string) => void;
   isSaving: boolean;
 }) {
+  console.log("-------editor.tsx-------", editorContent);
   return (
     <div className="w-full h-full relative">
       <div className="absolute top-4 right-4 rounded-md bg-muted px-2 py-1 text-sm text-muted-foreground z-50">
@@ -38,9 +34,9 @@ export function Editor({
       </div>
       <EditorRoot>
         <EditorContent
-          initialContent={editorContent}
+          initialContent={editorContent as any}
           extensions={defaultExtensions}
-          className="relative min-h-screen w-full max-w-screen-lg border-muted bg-background sm:mb-[calc(20vh)] sm:rounded-lg sm:border sm:shadow-lg"
+          className="relative min-h-screen overflow-y-scroll w-full max-w-screen-lg border-muted bg-background sm:mb-[calc(20vh)] sm:rounded-lg sm:border sm:shadow-lg"
           editorProps={{
             handleDOMEvents: {
               keydown: (_view, event) => handleCommandNavigation(event),
@@ -53,7 +49,8 @@ export function Editor({
             },
           }}
           onUpdate={({ editor }) => {
-            setEditorContent(editor.getJSON());
+            console.log("editorText", editor.getHTML());
+            setEditorContent(editor.getHTML());
           }}
         >
           <></>

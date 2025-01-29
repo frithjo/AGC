@@ -1,4 +1,4 @@
-export const DEFAULT_CONTENT = {
+export const DEFAULT_JSON = {
   type: "doc",
   content: [
     {
@@ -172,6 +172,8 @@ export const DEFAULT_CONTENT = {
     },
   ],
 };
+
+export const DEFAULT_HTML = `<h2>TODO</h2><ul class="not-prose pl-2 " data-type="taskList"><li class="flex gap-2 items-start my-4" data-checked="false" data-type="taskItem"><label><input type="checkbox"><span></span></label><div><p>fix landing page in <a target="_blank" rel="noopener noreferrer nofollow" class="text-muted-foreground underline underline-offset-[3px] hover:text-primary transition-colors cursor-pointer" href="http://mediatoad.com">mediatoad.com</a></p></div></li><li class="flex gap-2 items-start my-4" data-checked="false" data-type="taskItem"><label><input type="checkbox"><span></span></label><div><p>fix agentic flows</p></div></li><li class="flex gap-2 items-start my-4" data-checked="true" data-type="taskItem"><label><input type="checkbox" checked="checked"><span></span></label><div><p>go to park for a walk</p></div></li><li class="flex gap-2 items-start my-4" data-checked="false" data-type="taskItem"><label><input type="checkbox"><span></span></label><div><p>sleep for 6-7 hours a day</p></div></li></ul><hr class="mt-4 mb-6 border-t border-muted-foreground"><h3>Blog about shri</h3><p>Shri is a<em> SDE. </em>he sucks in<strong> life, broke, pro-procrastinator</strong>. he never made his parents proud/happy in his whole life. </p><ul class="list-disc list-outside leading-3 -mt-2"><li class="leading-normal -mb-2"><p>his dump fuck portfolio: <strong>dub.sh/shri</strong></p></li></ul><ul class="list-disc list-outside leading-3 -mt-2"><li class="leading-normal -mb-2"><p>he is a <strong>good consumer, do he dont apply on the real world to improve himself </strong></p></li></ul><ul class="list-disc list-outside leading-3 -mt-2"><li class="leading-normal -mb-2"><p><strong>hopefully , </strong><em>he will do something in the middle of this year</em></p></li></ul><p></p>`;
 
 export const iSuckTestingJSON = {
   type: "doc",

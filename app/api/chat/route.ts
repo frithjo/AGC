@@ -12,40 +12,11 @@ const model = openai("gpt-4o-mini-2024-07-18");
 
 const schema = z.object({
   message: z.string().describe("The messages to be sent to the user"),
-  updateEditorJSON: z.boolean().describe("Whether to update the editor JSON"),
-  editorJSON: z
-    .object({
-      type: z.string(),
-      content: z
-        .array(
-          z.object({
-            type: z.string(),
-            attrs: z
-              .object({
-                level: z.number().optional(),
-              })
-              .optional(),
-            content: z
-              .array(
-                z.object({
-                  type: z.string(),
-                  text: z.string(),
-                  marks: z
-                    .array(
-                      z.object({
-                        type: z.string(),
-                      })
-                    )
-                    .optional(),
-                })
-              )
-              .optional(),
-          })
-        )
-        .optional(),
-    })
+  updateEditorHTML: z.boolean().describe("Whether to update the editor HTML"),
+  editorHTML: z
+    .string()
     .describe(
-      "The content of the editor, please give the proper json object for the editor"
+      "The content of the editor, please give the proper html for the editor"
     ),
   nextPrompt: z
     .array(z.string())
@@ -56,14 +27,14 @@ const schema = z.object({
 });
 
 export async function POST(req: NextRequest) {
-  const { messages, prompt, editorContent } = await req.json();
+  const { messages, prompt, editorHTML } = await req.json();
 
-  console.log("payload", { prompt, messages, editorContent });
+  console.log("payload", { prompt, messages, editorHTML });
 
   const result = await generateObject({
     model,
     prompt,
-    system: systemPrompt(editorContent, messages),
+    system: systemPrompt(editorHTML, messages),
     schema,
   });
 
@@ -72,205 +43,81 @@ export async function POST(req: NextRequest) {
   return result.toJsonResponse();
 }
 
-function systemPrompt(editorContent: JSONContent, messages: Message[]) {
+function systemPrompt(editorHTML: string, messages: Message[]) {
   return `
-  You are a **helpful and a writing assistant** that can help with writing.
-  You are given a JSON object that represents the current state of the editor.
-  The JSON object of the editor is structured as follows:
-  ${JSON.stringify(editorContent, null, 2)}
+  You are an intelligent writing assistant specialized in document management and task organization. Your primary role is to help users manage their documents, tasks, and content effectively while maintaining proper HTML structure.
 
-  ## chatHistory: (use this for additional context)
+  Current Editor State:
+  \`\`\`html
+  ${editorHTML}
+  \`\`\`
+
+  Previous Context (chat history):
+  \`\`\`json
   ${JSON.stringify(messages, null, 2)}
- 
-  ### Instructions
-  0. Please fix the proper json object for the editor, think twice before you do it.
-  1. analyze the json object if the user asked something form the json answer it from it, otherwise search answer by your knowledge.
-  2. if the user asked something that is not related to the json object, the answer it from your knowledge.
-  3. please refer these types of json object to answer the user:
-  **Heading1**
-    {
-      type: "heading", 
-      attrs: {
-        level: 1,
-      },
-      content: [
-        {
-          type: "text",
+  \`\`\`
 
-          text: "Hello world",
-        },
-      ],
-    },
-    ----
-    **Heading2**
-      {
-      type: "heading",
-      attrs: {
-        level: 2,
-      },
-      content: [
-        {
-          type: "text",
-          text: "Hello World",
-        },
-      ],
-    },
-    ----
-    **Heading3**
-       {
-      type: "heading",
-      attrs: {
-        level: 3,
-      },
-      content: [
-        {
-          type: "text",
-          text: "Hello world",
-        },
-      ],
-    },
-    ----
-    **Paragraph**
-        {
-      type: "paragraph",
-      content: [
-        {
-          type: "text",
-          text: "This is the demo",
-        },
-      ],
-    },
-    ----
-    **List**
-        {
-      type: "bulletList",
-      content: [
-        {
-          type: "listItem",
-          content: [
-            {
-              type: "paragraph",
-              content: [
-                {
-                  type: "text",
-                  text: "hello world",
-                },
-              ],
-            },
-          ],
-        },
-        {
-          type: "listItem",
-          content: [
-            {
-              type: "paragraph",
-              content: [
-                {
-                  type: "text",
-                  text: "world hello",
-                },
-              ],
-            },
-            {
-              type: "orderedList",
-              attrs: {
-                start: 1,
-              },
-              content: [
-                {
-                  type: "listItem",
-                  content: [
-                    {
-                      type: "paragraph",
-                      content: [
-                        {
-                          type: "text",
-                          text: "sasa",
-                        },
-                      ],
-                    },
-                  ],
-                },
-                {
-                  type: "listItem",
-                  content: [
-                    {
-                      type: "paragraph",
-                      content: [
-                        {
-                          type: "text",
-                          text: "sasa",
-                        },
-                      ],
-                    },
-                  ],
-                },
-              ],
-            },
-          ],
-        },
-      ],
-    },
-    ----
-    **Quote**
-   {
-    "type": "blockquote",
-    "content": [
-        {
-            "type": "paragraph",
-            "content": [
-                {
-                    "type": "text",
-                    "text": "wassup world"
-                }
-            ]
-        }
-    ]
-}
-    **Code**
-    {
-    "type": "paragraph",
-    "content": [
-        {
-            "type": "text",
-            "marks": [
-                {
-                    "type": "code"
-                }
-            ],
-            "text": "code"
-        },
-        {
-            "type": "text",
-            "text": " "
-        }
-    ]
-}
-    **Task List**
-     {
-      "type": "taskList",
-      "content": [
-        {
-          "type": "taskItem",
-          attrs: {
-            checked: false, // true or false
-          },
-          content: [
-            {
-              type: "paragraph",
-              content: [
-                {
-                  type: "text",
-                  text: "hello world",
-                },
-              ],
-            },
-          ],
-        },
-      ],
-    },
+  Core Responsibilities:
+  1. Document Analysis & Response
+     - Analyze user queries about document content with high precision
+     - Extract relevant information from the HTML structure
+     - Provide accurate, context-aware responses
+  
+  2. Content Manipulation
+     - Maintain HTML structural integrity during any modifications
+     - Ensure proper nesting and class preservation
+     - Follow exact HTML patterns as specified below
 
-    4. If the user asked to create a new task or delete or update the task, then create a new task or delete or update the task by giving the task name and the task status with a proper json, please think and answer it with a proper json/reply.
+  3. Task Management
+     - Handle task creation, updates, and deletions precisely
+     - Maintain task status and associated metadata
+     - Preserve linking and formatting in task descriptions
 
+  Available HTML Components:
+
+  1. Headings:
+  \`\`\`html
+  <h1>Primary Heading</h1>
+  <h2>Secondary Heading</h2>
+  <h3>Tertiary Heading</h3>
+  \`\`\`
+
+  2. Content Elements:
+  \`\`\`html
+  <p>Paragraph content</p>
+  <ul>
+    <li>List item</li>
+  </ul>
+  <blockquote class="border-l-4 border-primary"><p>Quote content</p></blockquote>
+  <code class="rounded-md bg-muted px-1.5 py-1 font-mono font-medium" spellcheck="false">code</code>
+  \`\`\`
+
+  3. Task List Structure:
+  \`\`\`html
+  <ul class="not-prose pl-2" data-type="taskList">
+    <li class="flex gap-2 items-start my-4" data-checked="false" data-type="taskItem">
+      <label><input type="checkbox" /><span></span></label>
+      <div>
+        <p>Task Description</p>
+      </div>
+    </li>
+  </ul>
+  \`\`\`
+
+  Response Guidelines:
+  1. Always validate HTML structure before suggesting changes
+  2. Maintain existing classes and data attributes
+  3. Preserve link structures and formatting
+  4. Return complete, valid HTML for any content updates
+  5. Provide clear explanations for any suggested changes
+  6. Consider document context when making recommendations
+
+  For task operations:
+  - CREATE: Generate complete task HTML with proper attributes
+  - UPDATE: Modify existing task while preserving structure
+  - DELETE: Provide guidance for removing specific task elements
+  - STATUS: Toggle data-checked attribute appropriately
+
+  Remember: Every response should be structured, precise, and maintain document integrity while fulfilling the user's request.
   `;
 }

@@ -11,14 +11,14 @@ import { Loader2, SendIcon } from "lucide-react";
 import { Markdown } from "./markdown";
 
 type ChatUIProps = {
-  setEditorContent: (content: JSONContent) => void;
-  editorContent: JSONContent;
+  setEditorContent: (content: string) => void;
+  editorContent: string;
 };
 
 type ResponseObject = {
   message: string;
-  updateEditorJSON: boolean;
-  editorJSON: JSONContent;
+  updateEditorHTML: boolean;
+  editorHTML: string;
   nextPrompt: string[];
 };
 
@@ -40,8 +40,6 @@ export function ChatUI({ setEditorContent, editorContent }: ChatUIProps) {
   //     },
   //   });
 
-  console.log("editorContent", editorContent);
-
   async function handleSubmit() {
     if (input.length === 0) {
       alert("Please enter a message");
@@ -58,19 +56,18 @@ export function ChatUI({ setEditorContent, editorContent }: ChatUIProps) {
       method: "POST",
       body: JSON.stringify({
         messages,
-        editorContent,
+        editorHTML: editorContent,
         prompt: input,
       }),
     });
     const data: ResponseObject = await response.json();
     console.log("ai-object", data);
-    if (data.updateEditorJSON === true) {
-      console.log("editorJSON", data.editorJSON);
-      setEditorContent(data.editorJSON);
+    if (data.updateEditorHTML === true) {
+      console.log("data.editorHTML is updated", data.editorHTML);
+      setEditorContent(data.editorHTML);
     }
     setNextPromptSuggestion(data.nextPrompt);
     setMessages((prevMessages) => {
-      // Remove the last "Thinking..." message
       const messagesWithoutThinking = prevMessages.slice(0, -1);
       return [
         ...messagesWithoutThinking,
