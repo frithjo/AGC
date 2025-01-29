@@ -8,16 +8,34 @@ import {
   type JSONContent,
   handleCommandNavigation,
 } from "novel";
+import { Loader2, CheckIcon } from "lucide-react";
 
 export function Editor({
   editorContent,
   setEditorContent,
+  isSaving,
 }: {
   editorContent: JSONContent;
   setEditorContent: (content: JSONContent) => void;
+  isSaving: boolean;
 }) {
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-full relative">
+      <div className="absolute top-4 right-4 rounded-md bg-muted px-2 py-1 text-sm text-muted-foreground z-50">
+        {isSaving ? (
+          <div className="flex items-center gap-2">
+            <Loader2 className="animate-spin size-4" />
+            <div>Saving...</div>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <div>
+              <CheckIcon className="animate-pulse size-4" />
+            </div>
+            <div>Saved</div>
+          </div>
+        )}
+      </div>
       <EditorRoot>
         <EditorContent
           initialContent={editorContent}

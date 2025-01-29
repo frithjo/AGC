@@ -19,6 +19,7 @@ export default function Home() {
     }
     return DEFAULT_CONTENT;
   });
+  const [isSaving, setIsSaving] = useState(false);
 
   const throttledSave = useCallback((content: JSONContent) => {
     let timeoutId: NodeJS.Timeout;
@@ -26,8 +27,10 @@ export default function Home() {
       if (timeoutId) {
         clearTimeout(timeoutId);
       }
+      setIsSaving(true);
       timeoutId = setTimeout(() => {
         localStorage.setItem("editorContent", JSON.stringify(content));
+        setIsSaving(false);
       }, 500); // Save after 500ms of no updates
     };
   }, []);
@@ -59,6 +62,7 @@ export default function Home() {
           <Editor
             editorContent={initialContent}
             setEditorContent={setInitialContent}
+            isSaving={isSaving}
           />
         </ResizablePanel>
       </ResizablePanelGroup>

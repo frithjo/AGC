@@ -63,6 +63,7 @@ export function ChatUI({ setEditorContent, editorContent }: ChatUIProps) {
     const data: ResponseObject = await response.json();
     console.log("ai-object", data);
     if (data.updateEditorJSON === true) {
+      console.log("editorJSON", data.editorJSON);
       setEditorContent(data.editorJSON);
     }
     setNextPromptSuggestion(data.nextPrompt);
