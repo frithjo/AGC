@@ -1,11 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Message, useChat } from "ai/react";
-import { JSONContent } from "novel";
+import { Message } from "ai/react";
 import { Textarea } from "./ui/textarea";
 import { Loader2, SendIcon } from "lucide-react";
 import { Markdown } from "./markdown";

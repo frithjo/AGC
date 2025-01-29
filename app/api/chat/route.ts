@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { createOpenAI } from "@ai-sdk/openai";
 import { generateObject, Message, streamObject, streamText, tool } from "ai";
 import { z } from "zod";
-import { JSONContent } from "novel";
 
 const openai = createOpenAI({
   apiKey: process.env.OPENAI_API_KEY,
