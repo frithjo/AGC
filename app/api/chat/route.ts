@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createOpenAI } from "@ai-sdk/openai";
-import { generateObject, streamObject, streamText, tool } from "ai";
+import { generateObject, Message, streamObject, streamText, tool } from "ai";
 import { z } from "zod";
 import { JSONContent } from "novel";
 
@@ -14,8 +14,39 @@ const schema = z.object({
   message: z.string().describe("The messages to be sent to the user"),
   updateEditorJSON: z.boolean().describe("Whether to update the editor JSON"),
   editorJSON: z
-    .string()
-    .describe("The content of the editor in the JSON format"),
+    .object({
+      type: z.string(),
+      content: z
+        .array(
+          z.object({
+            type: z.string(),
+            attrs: z
+              .object({
+                level: z.number().optional(),
+              })
+              .optional(),
+            content: z
+              .array(
+                z.object({
+                  type: z.string(),
+                  text: z.string(),
+                  marks: z
+                    .array(
+                      z.object({
+                        type: z.string(),
+                      })
+                    )
+                    .optional(),
+                })
+              )
+              .optional(),
+          })
+        )
+        .optional(),
+    })
+    .describe(
+      "The content of the editor, please give the proper json object for the editor"
+    ),
   nextPrompt: z
     .array(z.string())
     .length(2)
@@ -32,7 +63,7 @@ export async function POST(req: NextRequest) {
   const result = await generateObject({
     model,
     prompt,
-    system: systemPrompt(editorContent),
+    system: systemPrompt(editorContent, messages),
     schema,
   });
 
@@ -41,17 +72,22 @@ export async function POST(req: NextRequest) {
   return result.toJsonResponse();
 }
 
-function systemPrompt(editorContent: JSONContent) {
+function systemPrompt(editorContent: JSONContent, messages: Message[]) {
   return `
-  You are a helpful and a writing assistant that can help with writing.
+  You are a **helpful and a writing assistant** that can help with writing.
   You are given a JSON object that represents the current state of the editor.
   The JSON object of the editor is structured as follows:
   ${JSON.stringify(editorContent, null, 2)}
 
+  ## chatHistory: (use this for additional context)
+  ${JSON.stringify(messages, null, 2)}
+ 
+  ### Instructions
+  0. Please fix the proper json object for the editor, think twice before you do it.
   1. analyze the json object if the user asked something form the json answer it from it, otherwise search answer by your knowledge.
   2. if the user asked something that is not related to the json object, the answer it from your knowledge.
   3. please refer these types of json object to answer the user:
-  Heading1
+  **Heading1**
     {
       type: "heading", 
       attrs: {
@@ -66,7 +102,7 @@ function systemPrompt(editorContent: JSONContent) {
       ],
     },
     ----
-   Heading2
+    **Heading2**
       {
       type: "heading",
       attrs: {
@@ -80,7 +116,7 @@ function systemPrompt(editorContent: JSONContent) {
       ],
     },
     ----
-    Heading3
+    **Heading3**
        {
       type: "heading",
       attrs: {
@@ -94,7 +130,7 @@ function systemPrompt(editorContent: JSONContent) {
       ],
     },
     ----
-    Paragraph
+    **Paragraph**
         {
       type: "paragraph",
       content: [
@@ -105,7 +141,7 @@ function systemPrompt(editorContent: JSONContent) {
       ],
     },
     ----
-    List
+    **List**
         {
       type: "bulletList",
       content: [
@@ -176,7 +212,7 @@ function systemPrompt(editorContent: JSONContent) {
       ],
     },
     ----
-    Quote
+    **Quote**
    {
     "type": "blockquote",
     "content": [
@@ -191,7 +227,7 @@ function systemPrompt(editorContent: JSONContent) {
         }
     ]
 }
-    Code
+    **Code**
     {
     "type": "paragraph",
     "content": [
@@ -210,7 +246,7 @@ function systemPrompt(editorContent: JSONContent) {
         }
     ]
 }
-    Task List
+    **Task List**
      {
       "type": "taskList",
       "content": [

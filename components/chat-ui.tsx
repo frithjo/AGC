@@ -26,9 +26,11 @@ export function ChatUI({ setEditorContent, editorContent }: ChatUIProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [nextPromptSuggestion, setNextPromptSuggestion] = useState<string[]>(
-    []
-  );
+  const [nextPromptSuggestion, setNextPromptSuggestion] = useState<string[]>([
+    "List all the tasks in table format",
+    "Mark this |taskName| as done",
+    "Add a new task |taskName|",
+  ]);
 
   // const { messages, input, handleInputChange, handleSubmit, isLoading } =
   //   useChat({
