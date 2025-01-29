@@ -55,6 +55,9 @@ export default function Home() {
             onChange={(value) => setInitialContent(value as string)}
             isSaving={isSaving}
             editorClassName="focus-within:border-none border-none"
+            bubbleMenu={true}
+            slashCommand={true}
+            // toolbar={true}
           />
         </ResizablePanel>
       </ResizablePanelGroup>

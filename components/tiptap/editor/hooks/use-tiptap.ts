@@ -7,7 +7,7 @@ import {
   type JSONContent,
   useEditor,
 } from "@tiptap/react";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { defaultExtensions } from "../extensions";
 import { uploadFn } from "../image-upload";
 import { slashCommandExtension } from "../slash-command";
@@ -100,6 +100,15 @@ export function useTiptap({
       },
     },
   });
+
+  useEffect(() => {
+    if (editor) {
+      const currentContent = getOutput(editor, output);
+      if (initialContent !== currentContent) {
+        editor.commands.setContent(initialContent, false);
+      }
+    }
+  }, [initialContent, editor, output]);
 
   return editor;
 }
