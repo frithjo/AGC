@@ -8,6 +8,7 @@ import { Message, useChat } from "ai/react";
 import { JSONContent } from "novel";
 import { Textarea } from "./ui/textarea";
 import { Loader2, SendIcon } from "lucide-react";
+import { Markdown } from "./markdown";
 
 type ChatUIProps = {
   setEditorContent: (content: JSONContent) => void;
@@ -91,11 +92,15 @@ export function ChatUI({ setEditorContent, editorContent }: ChatUIProps) {
                 message.role === "user"
                   ? "bg-blue-500 text-white"
                   : message.role === "data"
-                  ? "bg-gray-200 text-blue-400"
+                  ? "bg-muted text-muted-foreground"
                   : "bg-gray-200 text-black"
               }`}
             >
-              {message.content}
+              {message.role === "user" ? (
+                message.content
+              ) : (
+                <Markdown>{message.content}</Markdown>
+              )}
             </span>
           </div>
         ))}
@@ -103,7 +108,7 @@ export function ChatUI({ setEditorContent, editorContent }: ChatUIProps) {
       <div className="p-4 bg-transparent">
         <div className="flex space-x-2 relative">
           {nextPromptSuggestion && nextPromptSuggestion.length > 0 && (
-            <section className="w-[400px] flex gap-2 overflow-x-auto whitespace-nowrap text-muted-foreground absolute -top-9 left-1/2 -translate-x-1/2">
+            <section className="w-[400px] md:w-[600px] flex gap-2 overflow-x-auto whitespace-nowrap text-muted-foreground absolute -top-9 left-1/2 -translate-x-1/2">
               {nextPromptSuggestion.map(
                 (prompt) =>
                   input !== prompt && (
