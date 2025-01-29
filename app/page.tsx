@@ -7,13 +7,35 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { JSONContent } from "novel";
 import { DEFAULT_CONTENT } from "@/components/constants";
 
 export default function Home() {
-  const [initialContent, setInitialContent] =
-    useState<JSONContent>(DEFAULT_CONTENT);
+  const [initialContent, setInitialContent] = useState<JSONContent>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("editorContent");
+      return saved ? JSON.parse(saved) : DEFAULT_CONTENT;
+    }
+    return DEFAULT_CONTENT;
+  });
+
+  const throttledSave = useCallback((content: JSONContent) => {
+    let timeoutId: NodeJS.Timeout;
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+      timeoutId = setTimeout(() => {
+        localStorage.setItem("editorContent", JSON.stringify(content));
+      }, 500); // Save after 500ms of no updates
+    };
+  }, []);
+
+  useEffect(() => {
+    const saveToStorage = throttledSave(initialContent);
+    saveToStorage();
+  }, [initialContent, throttledSave]);
 
   return (
     <div className="h-screen font-sans">
