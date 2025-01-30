@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
   console.log("payload", { prompt, messages, editorHTML });
 
   const result = await generateObject({
-    model: geminiModel,
+    model: openAIModel,
     prompt,
     system: systemPrompt(editorHTML, messages),
     schema,
