@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { createOpenAI } from "@ai-sdk/openai";
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { generateObject, Message } from "ai";
 import { z } from "zod";
 
@@ -7,7 +8,12 @@ const openai = createOpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-const model = openai("gpt-4o-mini-2024-07-18");
+const gemini = createGoogleGenerativeAI({
+  apiKey: process.env.GEMINI_API_KEY,
+});
+
+const openAIModel = openai("gpt-4o-mini-2024-07-18");
+const geminiModel = gemini("gemini-1.5-flash-latest");
 
 const schema = z.object({
   message: z.string().describe("The response message to be shown to the user"),
@@ -33,7 +39,7 @@ export async function POST(req: NextRequest) {
   console.log("payload", { prompt, messages, editorHTML });
 
   const result = await generateObject({
-    model,
+    model: geminiModel,
     prompt,
     system: systemPrompt(editorHTML, messages),
     schema,
