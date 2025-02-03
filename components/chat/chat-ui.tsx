@@ -1,12 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Message } from "ai/react";
-import { Textarea } from "./ui/textarea";
-import { Loader2, SendIcon } from "lucide-react";
-import { Markdown } from "./markdown";
+import { Markdown } from "../markdown";
+import ChatInput from "./chat-input";
+import { Button } from "../ui/button";
 
 type ChatUIProps = {
   setEditorContent: (content: string) => void;
@@ -20,6 +19,9 @@ type ResponseObject = {
   nextPrompt: string[];
 };
 
+export type Mode = "chat" | "composer";
+export type Tools = "web" | "x" | "none";
+
 export function ChatUI({ setEditorContent, editorContent }: ChatUIProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -29,16 +31,10 @@ export function ChatUI({ setEditorContent, editorContent }: ChatUIProps) {
     "Mark this |taskName| as done",
     "Add a new task |taskName|",
   ]);
+  const [mode, setMode] = useState<Mode>("chat");
+  const [activeTool, setActiveTool] = useState<Tools>("none");
 
-  // const { messages, input, handleInputChange, handleSubmit, isLoading } =
-  //   useChat({
-  //     api: "/api/chat",
-  //     body: {
-  //       editorContent,
-  //     },
-  //   });
-
-  async function handleSubmit() {
+  async function handleSubmitComposer() {
     if (input.length === 0) {
       alert("Please enter a message");
       return;
@@ -50,7 +46,7 @@ export function ChatUI({ setEditorContent, editorContent }: ChatUIProps) {
       { role: "user", content: input, id: crypto.randomUUID() },
       { role: "data", content: "Thinking...", id: crypto.randomUUID() },
     ]);
-    const response = await fetch("/api/chat", {
+    const response = await fetch("/api/composer", {
       method: "POST",
       body: JSON.stringify({
         messages,
@@ -75,8 +71,62 @@ export function ChatUI({ setEditorContent, editorContent }: ChatUIProps) {
     setIsLoading(false);
   }
 
+  async function handleSubmitChat() {
+    if (input.length === 0) {
+      alert("Please enter a message");
+      return;
+    }
+    setInput("");
+    setIsLoading(true);
+    setMessages((prevMessages) => [
+      ...prevMessages,
+      { role: "user", content: input, id: crypto.randomUUID() },
+      { role: "data", content: "Thinking...", id: crypto.randomUUID() },
+    ]);
+    const response = await fetch("/api/chat", {
+      method: "POST",
+      body: JSON.stringify({
+        messages,
+        prompt: input,
+        tool: activeTool,
+      }),
+    });
+    const data = await response.text();
+    console.log("chat-data", data);
+    setMessages((prevMessages) => {
+      const messagesWithoutThinking = prevMessages.slice(0, -1);
+      return [
+        ...messagesWithoutThinking,
+        { role: "assistant", content: data.message, id: crypto.randomUUID() },
+      ];
+    });
+    setIsLoading(false);
+  }
+
   return (
     <div className="flex flex-col h-full">
+      <div className="pt-2 px-2 border-b flex gap-2">
+        <Button
+          variant="ghost"
+          tooltipText="Chat with search, twitter and more"
+          className={`rounded-none border-b-2 border-b-transparent ${
+            mode === "chat" ? "border-b-primary" : ""
+          } `}
+          onClick={() => setMode("chat")}
+        >
+          Chat
+        </Button>
+        <Button
+          variant="ghost"
+          tooltipText="AI have context about the Notes, So it can edit, add, delete, and create new notes"
+          className={`rounded-none border-b-2 border-b-transparent ${
+            mode === "composer" ? "border-b-primary" : ""
+          } `}
+          onClick={() => setMode("composer")}
+        >
+          Composer
+        </Button>
+      </div>
       <ScrollArea className="flex-1 p-4">
         {messages.map((message) => (
           <div
@@ -103,55 +153,18 @@ export function ChatUI({ setEditorContent, editorContent }: ChatUIProps) {
           </div>
         ))}
       </ScrollArea>
-      <div className="p-4 bg-transparent">
-        <div className="flex space-x-2 relative">
-          {nextPromptSuggestion && nextPromptSuggestion.length > 0 && (
-            <section className="w-[400px] md:w-[600px] flex gap-2 overflow-x-auto whitespace-nowrap text-muted-foreground absolute -top-9 left-1/2 -translate-x-1/2">
-              {nextPromptSuggestion.map(
-                (prompt) =>
-                  input !== prompt && (
-                    <div
-                      key={prompt}
-                      className="px-2 py-0.5 cursor-pointer hover:bg-muted text-sm flex-shrink-0 rounded-full bg-white border border-muted"
-                      onClick={() => setInput(prompt)}
-                    >
-                      {prompt}
-                    </div>
-                  )
-              )}
-            </section>
-          )}
-          <Textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Type your message..."
-            className="min-h-[120px] resize-none shadow-lg"
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                if (e.shiftKey) {
-                  return;
-                }
-                e.preventDefault();
-                handleSubmit();
-              }
-            }}
-          />
-          {input.length > 0 && (
-            <Button
-              onClick={handleSubmit}
-              disabled={isLoading}
-              size="icon"
-              className="rounded-full absolute bottom-2 right-1"
-            >
-              {isLoading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <SendIcon className="w-4 h-4" />
-              )}
-            </Button>
-          )}
-        </div>
-      </div>
+      <ChatInput
+        input={input}
+        activeTool={activeTool}
+        setActiveTool={setActiveTool}
+        mode={mode}
+        setInput={setInput}
+        handleSubmit={
+          mode === "composer" ? handleSubmitComposer : handleSubmitChat
+        }
+        isLoading={isLoading}
+        nextPromptSuggestion={nextPromptSuggestion}
+      />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { ChatUI } from "@/components/chat-ui";
+import { ChatUI } from "@/components/chat/chat-ui";
 import {
   ResizableHandle,
   ResizablePanel,
