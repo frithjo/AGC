@@ -97,7 +97,7 @@ export function ChatUI({ setEditorContent, editorContent }: ChatUIProps) {
       const messagesWithoutThinking = prevMessages.slice(0, -1);
       return [
         ...messagesWithoutThinking,
-        { role: "assistant", content: data.message, id: crypto.randomUUID() },
+        { role: "assistant", content: data, id: crypto.randomUUID() },
       ];
     });
     setIsLoading(false);
