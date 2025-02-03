@@ -37,6 +37,7 @@ const ChatInput = ({
     <div className="p-4 bg-transparent">
       {mode === "chat" && (
         <>
+          Tool:
           <DropdownMenu>
             <DropdownMenuTrigger>
               <Button
@@ -45,7 +46,7 @@ const ChatInput = ({
                 className="rounded-md mb-1 border min-w-[70px]"
               >
                 {activeTool === "web" && "web"}
-                {activeTool === "x" && "x"}
+                {activeTool === "x" && "x (Twitter)"}
                 {activeTool === "none" && "none"}
               </Button>
             </DropdownMenuTrigger>

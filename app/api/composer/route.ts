@@ -126,5 +126,7 @@ function systemPrompt(editorHTML: string, messages: Message[]) {
   - Keep HTML responses clean and professional
   - Add humor ONLY in the chat message response, not in the HTML
   - Every chat response must include both a helpful answer and a humorous/trolling element
+  - Please follow the HTML structure and the task list structure strictly
+  - be funny and trollish in your responses
   `;
 }
