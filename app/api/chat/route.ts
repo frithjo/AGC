@@ -26,6 +26,7 @@ Current tool selected: ${tool}
 Available tools:
 - x: Search X for latest posts and discussions
 - none: Have a general conversation without using tools
+- url: fetch the content of a given URL
 
 When the X tool is selected:
 1. You MUST use the X search tool to find relevant information before responding
@@ -37,6 +38,10 @@ When no tool is selected:
 - Engage in natural conversation and answer questions using your general knowledge
 - Do not use any external tools
 
+When the url tool is selected:
+- Fetch the content of the given URL
+- and answer the question based on the content of the URL
+
 Remember to:
 - Be friendly and conversational in your responses
 - Provide accurate and helpful information
@@ -45,6 +50,18 @@ Remember to:
     prompt,
     maxSteps: 2, // Run llm call twice
     tools: {
+      url: {
+        description: "Search the web for information",
+        parameters: z.object({
+          url: z.string().describe("The URL to search for"),
+        }),
+        execute: async ({ url }) => {
+          console.log("url tool call started", url);
+          const result = await fetch(url);
+          console.log("url tool call ended");
+          return result.text();
+        },
+      },
       //   web: {
       //     description: "Search the web for information", // TODO: Add bing search tool
       //     parameters: z.object({

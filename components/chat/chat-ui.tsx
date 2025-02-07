@@ -20,7 +20,7 @@ type ResponseObject = {
 };
 
 export type Mode = "chat" | "composer";
-export type Tools = "web" | "x" | "none";
+export type Tools = "web" | "x" | "none" | "url";
 
 export function ChatUI({ setEditorContent, editorContent }: ChatUIProps) {
   const [messages, setMessages] = useState<Message[]>([]);

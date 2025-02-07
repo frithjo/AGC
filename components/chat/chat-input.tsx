@@ -48,6 +48,7 @@ const ChatInput = ({
                 {activeTool === "web" && "web"}
                 {activeTool === "x" && "x (Twitter)"}
                 {activeTool === "none" && "none"}
+                {activeTool === "url" && "url (fetch)"}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" side="top">
@@ -59,6 +60,9 @@ const ChatInput = ({
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setActiveTool("none")}>
                 none
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setActiveTool("url")}>
+                url
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
