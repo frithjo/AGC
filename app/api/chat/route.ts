@@ -1,5 +1,5 @@
 import { geminiModel } from "../model";
-import { generateText } from "ai";
+import { streamText } from "ai";
 import { NextRequest } from "next/server";
 import { openAIModel } from "../model";
 import { z } from "zod";
@@ -21,12 +21,13 @@ const GoogleHeaders = {
 };
 
 export async function POST(req: NextRequest) {
-  const { messages, prompt, tool } = await req.json();
+  const { tool, messages } = await req.json();
 
-  console.log({ messages, prompt, tool });
+  console.log({ tool });
 
-  const result = await generateText({
+  const result = streamText({
     model: openAIModel,
+    messages,
     system: `You are a helpful and friendly AI assistant that can search X (formerly Twitter), search the web using Bing or Google, and answer general questions.
 
 Current tool selected: ${tool}
@@ -64,7 +65,6 @@ Remember to:
 - Clearly indicate when you are using information from searches
 - When web tool is selected, strictly use only web search and not X search
 `,
-    prompt,
     maxSteps: 2, // Run llm call twice
     tools: {
       url: {
@@ -118,7 +118,5 @@ Remember to:
     },
   });
 
-  const { text } = result;
-
-  return new Response(text);
+  return result.toDataStreamResponse();
 }

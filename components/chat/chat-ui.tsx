@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Message } from "ai/react";
+import { Message, useChat } from "ai/react";
 import { Markdown } from "../markdown";
 import ChatInput from "./chat-input";
 import { Button } from "../ui/button";
+import { experimental_useObject as useObject } from "@ai-sdk/react";
+import { z } from "zod";
 
 type ChatUIProps = {
   setEditorContent: (content: string) => void;
@@ -23,9 +25,6 @@ export type Mode = "chat" | "composer";
 export type Tools = "web" | "x" | "none" | "url";
 
 export function ChatUI({ setEditorContent, editorContent }: ChatUIProps) {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const [nextPromptSuggestion, setNextPromptSuggestion] = useState<string[]>([
     "List all the tasks in table format",
     "Mark this |taskName| as done",
@@ -33,25 +32,33 @@ export function ChatUI({ setEditorContent, editorContent }: ChatUIProps) {
   ]);
   const [mode, setMode] = useState<Mode>("chat");
   const [activeTool, setActiveTool] = useState<Tools>("none");
+  const { messages, input, isLoading, setInput, handleSubmit } = useChat({
+    api: "/api/chat",
+    body: {
+      tool: activeTool,
+    },
+  });
+  const [composerMessages, setComposerMessages] = useState<Message[]>([]);
+  const [isLoadingComposer, setIsLoadingComposer] = useState(false);
+  const [inputComposer, setInputComposer] = useState<string>("");
 
   async function handleSubmitComposer() {
-    if (input.length === 0) {
+    if (inputComposer.length === 0) {
       alert("Please enter a message");
       return;
     }
-    setInput("");
-    setIsLoading(true);
-    setMessages((prevMessages) => [
+    setInputComposer("");
+    setIsLoadingComposer(true);
+    setComposerMessages((prevMessages) => [
       ...prevMessages,
-      { role: "user", content: input, id: crypto.randomUUID() },
-      { role: "data", content: "Thinking...", id: crypto.randomUUID() },
+      { role: "user", content: inputComposer, id: crypto.randomUUID() },
     ]);
     const response = await fetch("/api/composer", {
       method: "POST",
       body: JSON.stringify({
-        messages,
+        messages: composerMessages,
         editorHTML: editorContent,
-        prompt: input,
+        prompt: inputComposer,
       }),
     });
     const data: ResponseObject = await response.json();
@@ -61,47 +68,15 @@ export function ChatUI({ setEditorContent, editorContent }: ChatUIProps) {
       setEditorContent(data.editorHTML);
     }
     setNextPromptSuggestion(data.nextPrompt);
-    setMessages((prevMessages) => {
-      const messagesWithoutThinking = prevMessages.slice(0, -1);
-      return [
-        ...messagesWithoutThinking,
-        { role: "assistant", content: data.message, id: crypto.randomUUID() },
-      ];
-    });
-    setIsLoading(false);
+    setComposerMessages((prevMessages) => [
+      ...prevMessages,
+      { role: "assistant", content: data.message, id: crypto.randomUUID() },
+    ]);
+    setIsLoadingComposer(false);
   }
 
-  async function handleSubmitChat() {
-    if (input.length === 0) {
-      alert("Please enter a message");
-      return;
-    }
-    setInput("");
-    setIsLoading(true);
-    setMessages((prevMessages) => [
-      ...prevMessages,
-      { role: "user", content: input, id: crypto.randomUUID() },
-      { role: "data", content: "Thinking...", id: crypto.randomUUID() },
-    ]);
-    const response = await fetch("/api/chat", {
-      method: "POST",
-      body: JSON.stringify({
-        messages,
-        prompt: input,
-        tool: activeTool,
-      }),
-    });
-    const data = await response.text();
-    console.log("chat-data", data);
-    setMessages((prevMessages) => {
-      const messagesWithoutThinking = prevMessages.slice(0, -1);
-      return [
-        ...messagesWithoutThinking,
-        { role: "assistant", content: data, id: crypto.randomUUID() },
-      ];
-    });
-    setIsLoading(false);
-  }
+  console.log("messages", messages);
+  console.log("composerMessages", composerMessages);
 
   return (
     <div className="flex flex-col h-full">
@@ -128,7 +103,7 @@ export function ChatUI({ setEditorContent, editorContent }: ChatUIProps) {
         </Button>
       </div>
       <ScrollArea className="flex-1 p-4">
-        {messages.map((message) => (
+        {(mode === "chat" ? messages : composerMessages).map((message) => (
           <div
             key={message.id}
             className={`mb-4 ${
@@ -139,31 +114,40 @@ export function ChatUI({ setEditorContent, editorContent }: ChatUIProps) {
               className={`inline-block p-2 rounded-lg ${
                 message.role === "user"
                   ? "bg-blue-500 text-white"
-                  : message.role === "data"
-                  ? "bg-muted text-muted-foreground"
+                  : message.content === ""
+                  ? "bg-blue-100 text-blue-500 font-medium"
                   : "bg-gray-200 text-black"
               }`}
             >
               {message.role === "user" ? (
                 message.content
               ) : (
-                <Markdown>{message.content}</Markdown>
+                <Markdown>
+                  {message.content === ""
+                    ? message?.toolInvocations?.[0]?.toolName +
+                      " tool called with the query: " +
+                      message?.toolInvocations?.[0]?.args?.query
+                    : message.content}
+                </Markdown>
               )}
             </span>
           </div>
         ))}
+        {(isLoading || isLoadingComposer) && (
+          <span className="ml-2 text-xs text-muted-foreground">
+            Thinking...
+          </span>
+        )}
       </ScrollArea>
       <ChatInput
-        input={input}
+        input={mode === "chat" ? input : inputComposer}
+        setInput={mode === "chat" ? setInput : setInputComposer}
+        handleSubmit={mode === "chat" ? handleSubmit : handleSubmitComposer}
+        isLoading={mode === "chat" ? isLoading : isLoadingComposer}
+        nextPromptSuggestion={nextPromptSuggestion}
         activeTool={activeTool}
         setActiveTool={setActiveTool}
         mode={mode}
-        setInput={setInput}
-        handleSubmit={
-          mode === "composer" ? handleSubmitComposer : handleSubmitChat
-        }
-        isLoading={isLoading}
-        nextPromptSuggestion={nextPromptSuggestion}
       />
     </div>
   );
