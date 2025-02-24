@@ -1,3 +1,4 @@
+import { Model } from "@/components/chat/chat-ui";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createOpenAI } from "@ai-sdk/openai";
 
@@ -9,5 +10,11 @@ const gemini = createGoogleGenerativeAI({
   apiKey: process.env.GEMINI_API_KEY,
 });
 
-export const openAIModel = openai("gpt-4o-mini-2024-07-18");
-export const geminiModel = gemini("gemini-1.5-flash-latest");
+export const models = {
+  openai: openai("gpt-4o-mini-2024-07-18"),
+  gemini: gemini("gemini-1.5-flash-latest"),
+} as const;
+
+export function getModel(model: Model) {
+  return models[model];
+}

@@ -1,7 +1,6 @@
-import { geminiModel } from "../model";
+import { getModel } from "../model";
 import { streamText } from "ai";
 import { NextRequest } from "next/server";
-import { openAIModel } from "../model";
 import { getXSearch } from "@/tools/x";
 import { getWebSearch } from "@/tools/web";
 import { getFetch } from "@/tools/fetch";
@@ -9,12 +8,25 @@ import { getFetch } from "@/tools/fetch";
 export async function POST(req: NextRequest) {
   const { tool, messages, model } = await req.json();
 
-  console.log({ tool });
+  console.log({ tool, model });
 
   const result = streamText({
-    model: model === "openai" ? openAIModel : geminiModel,
+    model: getModel(model),
     messages,
-    system: `You are a helpful and friendly AI assistant that can search X (formerly Twitter), search the web using Bing or Google, and answer general questions.
+    system: getSystemPrompt(tool),
+    tools: {
+      web: getWebSearch,
+      x: getXSearch,
+      url: getFetch,
+    },
+    maxSteps: 2, // can be overwritten by useChat hook
+  });
+
+  return result.toDataStreamResponse();
+}
+
+function getSystemPrompt(tool: string) {
+  return `You are a helpful and friendly AI assistant that can search X (formerly Twitter), search the web using Bing or Google, and answer general questions.
 
 Current tool selected: ${tool}
 
@@ -50,13 +62,5 @@ Remember to:
 - Provide accurate and helpful information
 - Clearly indicate when you are using information from searches
 - When web tool is selected, strictly use only web search and not X search
-`,
-    tools: {
-      web: getWebSearch,
-      x: getXSearch,
-      url: getFetch,
-    },
-  });
-
-  return result.toDataStreamResponse();
+`;
 }
