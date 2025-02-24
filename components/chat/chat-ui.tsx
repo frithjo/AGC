@@ -6,8 +6,6 @@ import { Message, useChat } from "ai/react";
 import { Markdown } from "../markdown";
 import ChatInput from "./chat-input";
 import { Button } from "../ui/button";
-import { experimental_useObject as useObject } from "@ai-sdk/react";
-import { z } from "zod";
 
 type ChatUIProps = {
   setEditorContent: (content: string) => void;

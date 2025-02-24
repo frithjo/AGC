@@ -35,7 +35,7 @@ Current tool selected: ${tool}
 Available tools:
 - x: Search X for latest posts and discussions
 - web: Search the web using Google for information
-- none: Have a general conversation without using tools
+- none: Think carefully about the user's prompt and determine if external tools would be helpful. If not needed, use your knowledge to provide a direct response.
 - url: fetch the content of a given URL
 
 When the X tool is selected:
