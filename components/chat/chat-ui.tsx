@@ -21,6 +21,7 @@ type ResponseObject = {
 
 export type Mode = "chat" | "composer";
 export type Tools = "web" | "x" | "none" | "url";
+export type Model = "openai" | "gemini";
 
 export function ChatUI({ setEditorContent, editorContent }: ChatUIProps) {
   const [nextPromptSuggestion, setNextPromptSuggestion] = useState<string[]>([
@@ -29,12 +30,15 @@ export function ChatUI({ setEditorContent, editorContent }: ChatUIProps) {
     "Add a new task |taskName|",
   ]);
   const [mode, setMode] = useState<Mode>("chat");
+  const [model, setModel] = useState<Model>("openai");
   const [activeTool, setActiveTool] = useState<Tools>("none");
   const { messages, input, isLoading, setInput, handleSubmit } = useChat({
     api: "/api/chat",
     body: {
       tool: activeTool,
+      model,
     },
+    maxSteps: 3,
   });
   const [composerMessages, setComposerMessages] = useState<Message[]>([]);
   const [isLoadingComposer, setIsLoadingComposer] = useState(false);
@@ -145,6 +149,8 @@ export function ChatUI({ setEditorContent, editorContent }: ChatUIProps) {
         nextPromptSuggestion={nextPromptSuggestion}
         activeTool={activeTool}
         setActiveTool={setActiveTool}
+        setModel={setModel}
+        model={model}
         mode={mode}
       />
     </div>

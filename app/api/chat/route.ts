@@ -2,31 +2,17 @@ import { geminiModel } from "../model";
 import { streamText } from "ai";
 import { NextRequest } from "next/server";
 import { openAIModel } from "../model";
-import { z } from "zod";
-
-const XHeaders = {
-  method: "GET",
-  headers: {
-    "x-rapidapi-key": process.env.RAPIDAPI_KEY,
-    "x-rapidapi-host": "twitter-api45.p.rapidapi.com",
-  },
-};
-
-const GoogleHeaders = {
-  method: "GET",
-  headers: {
-    "x-rapidapi-key": process.env.RAPIDAPI_KEY,
-    "x-rapidapi-host": "google-search72.p.rapidapi.com",
-  },
-};
+import { getXSearch } from "@/tools/x";
+import { getWebSearch } from "@/tools/web";
+import { getFetch } from "@/tools/fetch";
 
 export async function POST(req: NextRequest) {
-  const { tool, messages } = await req.json();
+  const { tool, messages, model } = await req.json();
 
   console.log({ tool });
 
   const result = streamText({
-    model: openAIModel,
+    model: model === "openai" ? openAIModel : geminiModel,
     messages,
     system: `You are a helpful and friendly AI assistant that can search X (formerly Twitter), search the web using Bing or Google, and answer general questions.
 
@@ -65,56 +51,10 @@ Remember to:
 - Clearly indicate when you are using information from searches
 - When web tool is selected, strictly use only web search and not X search
 `,
-    maxSteps: 2, // Run llm call twice
     tools: {
-      url: {
-        description: "Search the web for information",
-        parameters: z.object({
-          url: z.string().describe("The URL to search for"),
-        }),
-        execute: async ({ url }) => {
-          console.log("url tool call started", url);
-          const result = await fetch(url);
-          console.log("url tool call ended");
-          return result.text();
-        },
-      },
-      web: {
-        description: "Search the web using Google for information",
-        parameters: z.object({
-          query: z.string().describe("The search query"),
-        }),
-        execute: async ({ query }) => {
-          try {
-            const result = await fetch(
-              `https://google-search72.p.rapidapi.com/search?q=${query}&lr=en-US&num=4`,
-              GoogleHeaders as any
-            );
-            console.log("google search called");
-            const data = await result.text();
-            console.log("google search data", data);
-            return data;
-          } catch (error) {
-            console.error("Google search error:", error);
-            return "Error performing Google search";
-          }
-        },
-      },
-      x: {
-        description: "Search X for information",
-        parameters: z.object({
-          query: z.string().describe("The query to search for"),
-        }),
-        execute: async ({ query }) => {
-          const result = await fetch(
-            `https://twitter-api45.p.rapidapi.com/search.php?query=${query}&search_type=Top`,
-            XHeaders as any
-          );
-          console.log("x tool called");
-          const data = await result.text();
-          return data;
-        },
-      },
+      web: getWebSearch,
+      x: getXSearch,
+      url: getFetch,
     },
   });
 

@@ -3,8 +3,8 @@
 import React from "react";
 import { Textarea } from "../ui/textarea";
 import { Button } from "../ui/button";
-import { Loader2, SendIcon } from "lucide-react";
-import { Mode, Tools } from "./chat-ui";
+import { Loader2, SendIcon, ChevronUp } from "lucide-react";
+import { Mode, Tools, Model } from "./chat-ui";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,6 +21,8 @@ type ChatInputProps = {
   activeTool: Tools;
   mode: Mode;
   setActiveTool: (tool: Tools) => void;
+  setModel: (model: Model) => void;
+  model: Model;
 };
 
 const ChatInput = ({
@@ -32,42 +34,58 @@ const ChatInput = ({
   activeTool,
   setActiveTool,
   mode,
+  setModel,
+  model,
 }: ChatInputProps) => {
   return (
-    <div className="p-4 bg-transparent">
-      {mode === "chat" && (
-        <>
-          Tool:
+    <div className="p-4 bg-transparent relative">
+      <section className="flex items-center absolute bottom-3 left-4 z-10">
+        {mode === "chat" && (
           <DropdownMenu>
             <DropdownMenuTrigger>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="rounded-md mb-1 border min-w-[70px]"
-              >
-                {activeTool === "web" && "web"}
-                {activeTool === "x" && "x (Twitter)"}
-                {activeTool === "none" && "none"}
-                {activeTool === "url" && "url (fetch)"}
+              <Button variant="ghost" className="rounded-md mb-1">
+                {activeTool === "web" && "Web"}
+                {activeTool === "x" && "X"}
+                {activeTool === "none" && "Auto"}
+                {activeTool === "url" && "Fetch"}
+                <ChevronUp className="w-4 h-4 ml-2" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" side="top">
               <DropdownMenuItem onClick={() => setActiveTool("web")}>
-                web
+                Web (Google)
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setActiveTool("x")}>
-                x
+                X (Twitter)
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setActiveTool("none")}>
-                none
+                Auto (ai-choose)
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setActiveTool("url")}>
-                url
+                url (fetch)
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+        <>
+          <DropdownMenu>
+            <DropdownMenuTrigger className="border-none">
+              <Button variant="ghost" className="rounded-md mb-1">
+                {model === "openai" ? "gpt-4o-mini" : "gemini-1.5-flash"}
+                <ChevronUp className="w-4 h-4 ml-2" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" side="top">
+              <DropdownMenuItem onClick={() => setModel("openai")}>
+                gpt-4o-mini
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setModel("gemini")}>
+                gemini-1.5-flash
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </>
-      )}
+      </section>
       <div className="flex space-x-2 relative">
         {nextPromptSuggestion &&
           nextPromptSuggestion.length > 0 &&
