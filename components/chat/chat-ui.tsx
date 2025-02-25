@@ -6,10 +6,13 @@ import { Message, useChat } from "ai/react";
 import { Markdown } from "../markdown";
 import ChatInput from "./chat-input";
 import { Button } from "../ui/button";
+import { toast } from "sonner";
+import { Editor } from "tldraw";
 
 type ChatUIProps = {
   setEditorContent: (content: string) => void;
   editorContent: string;
+  editor: Editor | null;
 };
 
 type ResponseObject = {
@@ -20,10 +23,14 @@ type ResponseObject = {
 };
 
 export type Mode = "chat" | "composer";
-export type Tools = "web" | "x" | "none" | "url";
+export type Tools = "web" | "x" | "none" | "url" | "notes";
 export type Model = "openai" | "gemini";
 
-export function ChatUI({ setEditorContent, editorContent }: ChatUIProps) {
+export function ChatUI({
+  setEditorContent,
+  editorContent,
+  editor,
+}: ChatUIProps) {
   const [nextPromptSuggestion, setNextPromptSuggestion] = useState<string[]>([
     "List all the tasks in table format",
     "Mark this |taskName| as done",
@@ -37,16 +44,73 @@ export function ChatUI({ setEditorContent, editorContent }: ChatUIProps) {
     body: {
       tool: activeTool,
       model,
+      // ...(activeTool === "notes" && {
+      //   notes: editorContent,
+      // }),
     },
-    maxSteps: 3,
+    maxSteps: 2,
+    onToolCall: (toolCall) => {
+      console.log("toolCall", toolCall);
+    },
+    onError: (error) => {
+      console.error("error", error);
+      toast.error("Error: " + error.message);
+    },
   });
   const [composerMessages, setComposerMessages] = useState<Message[]>([]);
   const [isLoadingComposer, setIsLoadingComposer] = useState(false);
   const [inputComposer, setInputComposer] = useState<string>("");
 
+  // async function getTlDrawCanvasScreenshot() {
+  //   if (!editor) {
+  //     toast.error("No editor found");
+  //     return;
+  //   }
+  //   const shapeIds = editor.getCurrentPageShapeIds();
+  //   if (shapeIds.size === 0) {
+  //     toast.info("No shapes on the canvas");
+  //     return;
+  //   }
+  //   const { blob } = await editor.toImage([...shapeIds], {
+  //     format: "png",
+  //     background: false,
+  //   });
+
+  //   const url = URL.createObjectURL(blob);
+  //   URL.revokeObjectURL(url);
+  //   return url;
+  // }
+
+  async function handleSubmitChat(e: any) {
+    e.preventDefault();
+    if (input.length === 0) {
+      toast.error("Please enter a message");
+      return;
+    }
+    if (input.includes("@whiteboard")) {
+      // const whiteBoardImage = await getTlDrawCanvasScreenshot();
+      handleSubmit(undefined, {
+        experimental_attachments: [
+          {
+            contentType: "image/png",
+            name: "whiteboard.png",
+            url: "https://unsplash.com/photos/person-typing-on-gray-and-black-hp-laptop-EDZTb2SQ6j0",
+          },
+        ],
+      });
+      return;
+    }
+    if (input.includes("@notes")) {
+      setActiveTool("notes");
+      handleSubmit();
+      return;
+    }
+    handleSubmit(e);
+  }
+
   async function handleSubmitComposer() {
     if (inputComposer.length === 0) {
-      alert("Please enter a message");
+      toast.error("Please enter a message");
       return;
     }
     setInputComposer("");
@@ -144,7 +208,7 @@ export function ChatUI({ setEditorContent, editorContent }: ChatUIProps) {
       <ChatInput
         input={mode === "chat" ? input : inputComposer}
         setInput={mode === "chat" ? setInput : setInputComposer}
-        handleSubmit={mode === "chat" ? handleSubmit : handleSubmitComposer}
+        handleSubmit={mode === "chat" ? handleSubmitChat : handleSubmitComposer}
         isLoading={mode === "chat" ? isLoading : isLoadingComposer}
         nextPromptSuggestion={nextPromptSuggestion}
         activeTool={activeTool}

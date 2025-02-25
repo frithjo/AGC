@@ -66,7 +66,7 @@ const TiptapEditor = ({
 
   return (
     <div className={cn("relative", className)}>
-      <div className="absolute top-4 right-4 rounded-md bg-muted px-2 py-1 text-sm text-muted-foreground z-50">
+      {/* <div className="absolute top-4 right-4 rounded-md bg-muted px-2 py-1 text-sm text-muted-foreground z-50">
         {isSaving ? (
           <div className="flex items-center gap-2">
             <Loader2 className="animate-spin size-4" />
@@ -80,7 +80,7 @@ const TiptapEditor = ({
             <div>Saved</div>
           </div>
         )}
-      </div>
+      </div> */}
 
       {toolbar && (
         <Toolbar

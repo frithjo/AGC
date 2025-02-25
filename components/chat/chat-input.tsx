@@ -15,7 +15,7 @@ import {
 type ChatInputProps = {
   input: string;
   setInput: (input: string) => void;
-  handleSubmit: () => void;
+  handleSubmit: (e: any) => void;
   isLoading: boolean;
   nextPromptSuggestion: string[];
   activeTool: Tools;
@@ -48,6 +48,7 @@ const ChatInput = ({
                 {activeTool === "x" && "X"}
                 {activeTool === "none" && "Auto"}
                 {activeTool === "url" && "Fetch"}
+                {activeTool === "notes" && "Notes"}
                 <ChevronUp className="w-4 h-4 ml-2" />
               </Button>
             </DropdownMenuTrigger>
@@ -63,6 +64,9 @@ const ChatInput = ({
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setActiveTool("url")}>
                 url (fetch)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setActiveTool("notes")}>
+                notes (read)
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -108,7 +112,11 @@ const ChatInput = ({
         <Textarea
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Type your message..."
+          placeholder={
+            mode === "chat"
+              ? "Chat with AI using Web, X, fetch-url, @whiteboard , @notes"
+              : "Ask AI to help manage your notes"
+          }
           className="min-h-[120px] resize-none shadow-lg"
           onKeyDown={(e) => {
             if (e.key === "Enter") {
@@ -116,7 +124,7 @@ const ChatInput = ({
                 return;
               }
               e.preventDefault();
-              handleSubmit();
+              handleSubmit(e);
             }
           }}
         />

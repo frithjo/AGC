@@ -9,6 +9,9 @@ import {
 import { useState, useEffect, useCallback } from "react";
 import { DEFAULT_HTML } from "@/components/constants";
 import { TiptapEditor } from "@/components/tiptap";
+import "tldraw/tldraw.css";
+import { TldrawComponent } from "@/components/tldraw-component";
+import { Editor } from "tldraw";
 
 export default function Home() {
   // const [initialContent, setInitialContent] = useState<string>(() => {
@@ -41,6 +44,11 @@ export default function Home() {
 
   const [initialContent, setInitialContent] = useState<string>(DEFAULT_HTML);
   console.log("initialContent", initialContent);
+  const [editor, setEditor] = useState<Editor | null>(null);
+
+  const handleEditorChange = (newEditor: Editor) => {
+    setEditor(newEditor);
+  };
 
   return (
     <div className="h-screen font-sans">
@@ -53,23 +61,32 @@ export default function Home() {
           <ChatUI
             setEditorContent={setInitialContent}
             editorContent={initialContent}
+            editor={editor}
           />
         </ResizablePanel>
-        <ResizableHandle withHandle={true} />
+        <ResizableHandle withHandle={true} className="z-50" />
         <ResizablePanel
           defaultSize={50}
           minSize={30}
           className="overflow-hidden"
         >
-          <TiptapEditor
-            value={initialContent}
-            onChange={(value) => setInitialContent(value as string)}
-            isSaving={false}
-            editorClassName="focus-within:border-none border-none"
-            bubbleMenu={true}
-            slashCommand={true}
-            // toolbar={true}
-          />
+          <ResizablePanelGroup direction="vertical">
+            <ResizablePanel defaultSize={50} minSize={30}>
+              <TiptapEditor
+                value={initialContent}
+                onChange={(value) => setInitialContent(value as string)}
+                isSaving={false}
+                editorClassName="focus-within:border-none border-none"
+                bubbleMenu={true}
+                slashCommand={true}
+                // toolbar={true}
+              />
+            </ResizablePanel>
+            <ResizableHandle withHandle={true} className="z-50" />
+            <ResizablePanel defaultSize={50} minSize={30} className="z-20">
+              <TldrawComponent onEditorChange={handleEditorChange} />
+            </ResizablePanel>
+          </ResizablePanelGroup>
         </ResizablePanel>
       </ResizablePanelGroup>
     </div>

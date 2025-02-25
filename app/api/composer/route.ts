@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { generateObject, Message } from "ai";
 import { z } from "zod";
-import { openAIModel } from "../model";
+import { getModel } from "../model";
 
 const schema = z.object({
   message: z.string().describe("The response message to be shown to the user"),
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
   console.log("payload", { prompt, messages, editorHTML });
 
   const result = await generateObject({
-    model: openAIModel,
+    model: getModel("openai"),
     prompt,
     system: systemPrompt(editorHTML, messages),
     schema,

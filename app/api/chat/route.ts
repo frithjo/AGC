@@ -19,6 +19,8 @@ export async function POST(req: NextRequest) {
       x: getXSearch,
       url: getFetch,
     },
+    experimental_activeTools: ["web", "x", "url"],
+    // toolChoice: tool === "none" ? "auto" : tool,
     maxSteps: 2, // can be overwritten by useChat hook
   });
 
@@ -35,6 +37,7 @@ Available tools:
 - web: Search the web using Google for information
 - none: Think carefully about the user's prompt and determine if external tools would be helpful. If not needed, use your knowledge to provide a direct response.
 - url: fetch the content of a given URL
+- notes: read the notes and return the text
 
 When the X tool is selected:
 1. You MUST use the X search tool to find relevant information before responding
@@ -56,6 +59,9 @@ When no tool is selected:
 When the url tool is selected:
 - Fetch the content of the given URL
 - and answer the question based on the content of the URL
+
+When the notes tool is selected:
+- Read the notes and return the text
 
 Remember to:
 - Be friendly and conversational in your responses
