@@ -5,11 +5,12 @@ import { getXSearch } from "@/tools/x";
 import { getWebSearch } from "@/tools/web";
 import { getFetch } from "@/tools/fetch";
 import { doFileSearch } from "@/tools/file-search";
+import { getNotes } from "@/tools/notes";
 
 export async function POST(req: NextRequest) {
-  const { tool, messages, model } = await req.json();
+  const { tool, messages, model, notes } = await req.json();
 
-  console.log({ tool, model });
+  console.log({ tool, model, notes: tool === "notes" ? notes : "" });
 
   const result = streamText({
     model: getModel(model),
@@ -20,8 +21,9 @@ export async function POST(req: NextRequest) {
       x: getXSearch,
       url: getFetch,
       fileSearch: doFileSearch,
+      notes: getNotes(notes),
     },
-    experimental_activeTools: ["web", "x", "url", "fileSearch"],
+    experimental_activeTools: ["web", "x", "url", "fileSearch", "notes"],
     // toolChoice: tool === "none" ? "auto" : tool,
     maxSteps: 3, // can be overwritten by useChat hook
     onStepFinish(event) {
@@ -50,7 +52,7 @@ Available tools:
 - web: Search the web using Google.
 - none: Use your internal knowledge to answer directly.
 - url: Fetch the content of a given URL.
-- notes: Read notes and return the text.
+- notes: Read, analyze, and update notes content.
 - fileSearch: Search the vectorStore for relevant information.
 
 When the X tool is selected:
@@ -60,7 +62,7 @@ When the X tool is selected:
 
 When the web tool is selected:
 1. You MUST use web search exclusively to find relevant information.
-2. Search using the user’s query and include key findings with proper citations.
+2. Search using the user's query and include key findings with proper citations.
 3. DO NOT use the X search tool when the web tool is selected.
 
 When no tool is selected:
@@ -70,7 +72,17 @@ When the url tool is selected:
 - Fetch and use the content from the provided URL.
 
 When the notes tool is selected:
-- Read the notes and return their text.
+1. You can perform two types of actions:
+   - Read and analyze existing notes content
+   - Update notes with new content
+2. When reading:
+   - Analyze the notes content in relation to the user's query
+   - Provide precise and relevant information from the notes
+   - Include analysis and explanations as needed
+3. When updating:
+   - Modify the notes content as requested
+   - Confirm successful updates
+4. Always provide clear feedback about the action taken and its result
 
 Remember:
 - Always check the vectorStore for a matching answer first.

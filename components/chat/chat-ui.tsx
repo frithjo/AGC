@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Message, useChat } from "ai/react";
 import { Markdown } from "../markdown";
@@ -8,6 +8,7 @@ import ChatInput from "./chat-input";
 import { Button } from "../ui/button";
 import { toast } from "sonner";
 import { Editor } from "tldraw";
+import { ToolInvocation } from "ai";
 
 type ChatUIProps = {
   setEditorContent: (content: string) => void;
@@ -39,24 +40,24 @@ export function ChatUI({
   const [mode, setMode] = useState<Mode>("chat");
   const [model, setModel] = useState<Model>("openai");
   const [activeTool, setActiveTool] = useState<Tools>("none");
-  const { messages, input, isLoading, setInput, handleSubmit } = useChat({
-    api: "/api/chat",
-    body: {
-      tool: activeTool,
-      model,
-      // ...(activeTool === "notes" && {
-      //   notes: editorContent,
-      // }),
-    },
-    maxSteps: 2,
-    onToolCall: (toolCall) => {
-      console.log("toolCall", toolCall);
-    },
-    onError: (error) => {
-      console.error("error", error);
-      toast.error("Error: " + error.message);
-    },
-  });
+  const { messages, input, isLoading, setInput, handleSubmit, addToolResult } =
+    useChat({
+      api: "/api/chat",
+      body: {
+        tool: activeTool,
+        model,
+        ...(activeTool === "notes" && {
+          notes: editorContent,
+        }),
+      },
+      onToolCall: async ({ toolCall }) => {
+        console.log("toolCall", toolCall);
+      },
+      onError: (error) => {
+        console.error("error", error);
+        toast.error("Error: " + error.message);
+      },
+    });
   const [composerMessages, setComposerMessages] = useState<Message[]>([]);
   const [isLoadingComposer, setIsLoadingComposer] = useState(false);
   const [inputComposer, setInputComposer] = useState<string>("");
@@ -144,6 +145,23 @@ export function ChatUI({
   console.log("messages", messages);
   console.log("composerMessages", composerMessages);
 
+  function getToolNameAndArgs(toolInvocation: ToolInvocation) {
+    const toolName = toolInvocation.toolName;
+    const toolArgs = toolInvocation.args;
+    const args = {
+      fileSearch: toolArgs.prompt,
+      url: toolArgs.url,
+      x: toolArgs.query,
+      web: toolArgs.query,
+    };
+    return (
+      toolName.toUpperCase() +
+      " called : **" +
+      (args[toolName as keyof typeof args] || JSON.stringify(toolArgs)) +
+      "**"
+    );
+  }
+
   return (
     <div className="flex flex-col h-full">
       <div className="pt-2 px-2 border-b flex gap-2">
@@ -190,10 +208,9 @@ export function ChatUI({
               ) : (
                 <Markdown>
                   {message.content === ""
-                    ? message?.toolInvocations?.[0]?.toolName +
-                        " tool called with the query: " +
-                        message?.toolInvocations?.[0]?.args?.prompt ||
-                      message?.toolInvocations?.[0]?.args?.query
+                    ? getToolNameAndArgs(
+                        message.toolInvocations?.[0] as ToolInvocation
+                      )
                     : message.content}
                 </Markdown>
               )}
