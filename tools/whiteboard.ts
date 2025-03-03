@@ -1,6 +1,6 @@
-import { tool } from "ai";
+import { generateText, tool } from "ai";
 import { z } from "zod";
-import OpenAI from "openai";
+import { models } from "@/app/api/model";
 
 export const analyzeWhiteboard = (imageUrl: string) => {
   return tool({
@@ -10,12 +10,10 @@ export const analyzeWhiteboard = (imageUrl: string) => {
     }),
     execute: async ({ query }) => {
       try {
-        const openai = new OpenAI({
-          apiKey: process.env.OPENAI_API_KEY,
-        });
-
-        const response = await openai.chat.completions.create({
-          model: "gpt-4o-mini",
+        const response = await generateText({
+          model: models.openai,
+          system:
+            "You are a helpful assistant that can analyze whiteboard images and extract information from them.",
           messages: [
             {
               role: "user",
@@ -25,20 +23,16 @@ export const analyzeWhiteboard = (imageUrl: string) => {
                   text: query,
                 },
                 {
-                  type: "image_url",
-                  image_url: {
-                    url: imageUrl,
-                  },
+                  type: "image",
+                  image: new URL(imageUrl),
                 },
               ],
             },
           ],
-          temperature: 0.7,
-          max_tokens: 500,
         });
 
         return {
-          analysis: response.choices[0].message.content,
+          analysis: response.text,
           success: true,
         };
       } catch (error) {
