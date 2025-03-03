@@ -6,11 +6,17 @@ import { getWebSearch } from "@/tools/web";
 import { getFetch } from "@/tools/fetch";
 import { doFileSearch } from "@/tools/file-search";
 import { getNotes } from "@/tools/notes";
+import { analyzeWhiteboard } from "@/tools/whiteboard";
 
 export async function POST(req: NextRequest) {
-  const { tool, messages, model, notes } = await req.json();
+  const { tool, messages, model, notes, image } = await req.json();
 
-  console.log({ tool, model, notes: tool === "notes" ? notes : "" });
+  console.log({
+    tool,
+    model,
+    notes: tool === "notes" ? notes : "",
+    image: tool === "whiteboard" ? image : "",
+  });
 
   const result = streamText({
     model: getModel(model),
@@ -22,8 +28,16 @@ export async function POST(req: NextRequest) {
       url: getFetch,
       fileSearch: doFileSearch,
       notes: getNotes(notes),
+      whiteboard: analyzeWhiteboard(image),
     },
-    experimental_activeTools: ["web", "x", "url", "fileSearch", "notes"],
+    experimental_activeTools: [
+      "web",
+      "x",
+      "url",
+      "fileSearch",
+      "notes",
+      "whiteboard",
+    ],
     // toolChoice: tool === "none" ? "auto" : tool,
     maxSteps: 3, // can be overwritten by useChat hook
     onStepFinish(event) {

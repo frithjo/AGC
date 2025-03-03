@@ -24,7 +24,7 @@ type ResponseObject = {
 };
 
 export type Mode = "chat" | "composer";
-export type Tools = "web" | "x" | "none" | "url" | "notes";
+export type Tools = "web" | "x" | "none" | "url" | "notes" | "whiteboard";
 export type Model = "openai" | "gemini";
 
 export function ChatUI({
@@ -40,47 +40,51 @@ export function ChatUI({
   const [mode, setMode] = useState<Mode>("chat");
   const [model, setModel] = useState<Model>("openai");
   const [activeTool, setActiveTool] = useState<Tools>("none");
-  const { messages, input, isLoading, setInput, handleSubmit, addToolResult } =
-    useChat({
-      api: "/api/chat",
-      body: {
-        tool: activeTool,
-        model,
-        ...(activeTool === "notes" && {
-          notes: editorContent,
-        }),
-      },
-      onToolCall: async ({ toolCall }) => {
-        console.log("toolCall", toolCall);
-      },
-      onError: (error) => {
-        console.error("error", error);
-        toast.error("Error: " + error.message);
-      },
-    });
+  const [whiteBoardImage, setWhiteBoardImage] = useState<string | null>(null);
+  const { messages, input, isLoading, setInput, handleSubmit } = useChat({
+    api: "/api/chat",
+    body: {
+      tool: activeTool,
+      model,
+      ...(activeTool === "notes" && {
+        notes: editorContent,
+      }),
+      ...(activeTool === "whiteboard" && {
+        image: "https://images.pexels.com/photos/67112/pexels-photo-67112.jpeg",
+        // because the canvas is a localhost url it wont works (store the canvas image in aws and send the signedUrl)
+      }),
+    },
+    onToolCall: async ({ toolCall }) => {
+      console.log("toolCall", toolCall);
+    },
+    onError: (error) => {
+      console.error("error", error);
+      toast.error("Error: " + error.message);
+    },
+  });
   const [composerMessages, setComposerMessages] = useState<Message[]>([]);
   const [isLoadingComposer, setIsLoadingComposer] = useState(false);
   const [inputComposer, setInputComposer] = useState<string>("");
 
-  // async function getTlDrawCanvasScreenshot() {
-  //   if (!editor) {
-  //     toast.error("No editor found");
-  //     return;
-  //   }
-  //   const shapeIds = editor.getCurrentPageShapeIds();
-  //   if (shapeIds.size === 0) {
-  //     toast.info("No shapes on the canvas");
-  //     return;
-  //   }
-  //   const { blob } = await editor.toImage([...shapeIds], {
-  //     format: "png",
-  //     background: false,
-  //   });
+  async function getTlDrawCanvasScreenshot() {
+    if (!editor) {
+      toast.error("No editor found");
+      return;
+    }
+    const shapeIds = editor.getCurrentPageShapeIds();
+    if (shapeIds.size === 0) {
+      toast.info("No shapes on the canvas");
+      return;
+    }
+    const { blob } = await editor.toImage([...shapeIds], {
+      format: "png",
+      background: false,
+    });
 
-  //   const url = URL.createObjectURL(blob);
-  //   URL.revokeObjectURL(url);
-  //   return url;
-  // }
+    const url = URL.createObjectURL(blob);
+    URL.revokeObjectURL(url);
+    return url;
+  }
 
   async function handleSubmitChat(e: any) {
     e.preventDefault();
@@ -89,16 +93,13 @@ export function ChatUI({
       return;
     }
     if (input.includes("@whiteboard")) {
-      // const whiteBoardImage = await getTlDrawCanvasScreenshot();
-      handleSubmit(undefined, {
-        experimental_attachments: [
-          {
-            contentType: "image/png",
-            name: "whiteboard.png",
-            url: "https://unsplash.com/photos/person-typing-on-gray-and-black-hp-laptop-EDZTb2SQ6j0",
-          },
-        ],
-      });
+      const w = await getTlDrawCanvasScreenshot();
+      setActiveTool("whiteboard");
+      setWhiteBoardImage(
+        w! ||
+          "https://www.pexels.com/photo/macbook-air-on-grey-wooden-table-67112/"
+      );
+      handleSubmit();
       return;
     }
     if (input.includes("@notes")) {

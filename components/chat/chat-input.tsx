@@ -49,6 +49,7 @@ const ChatInput = ({
                 {activeTool === "none" && "Auto"}
                 {activeTool === "url" && "Fetch"}
                 {activeTool === "notes" && "Notes"}
+                {activeTool === "whiteboard" && "Whiteboard"}
                 <ChevronUp className="w-4 h-4 ml-2" />
               </Button>
             </DropdownMenuTrigger>
@@ -67,6 +68,9 @@ const ChatInput = ({
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setActiveTool("notes")}>
                 notes (read)
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setActiveTool("whiteboard")}>
+                whiteboard (read)
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
