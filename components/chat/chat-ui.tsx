@@ -191,7 +191,8 @@ export function ChatUI({
                 <Markdown>
                   {message.content === ""
                     ? message?.toolInvocations?.[0]?.toolName +
-                      " tool called with the query: " +
+                        " tool called with the query: " +
+                        message?.toolInvocations?.[0]?.args?.prompt ||
                       message?.toolInvocations?.[0]?.args?.query
                     : message.content}
                 </Markdown>
