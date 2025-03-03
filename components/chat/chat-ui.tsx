@@ -50,7 +50,8 @@ export function ChatUI({
         notes: editorContent,
       }),
       ...(activeTool === "whiteboard" && {
-        image: "https://images.pexels.com/photos/67112/pexels-photo-67112.jpeg",
+        image:
+          "https://raw.githubusercontent.com/shrix1/ai-sdk-tool-calling/refs/heads/main/public/canvas.png",
         // because the canvas is a localhost url it wont works (store the canvas image in aws and send the signedUrl)
       }),
     },
