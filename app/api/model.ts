@@ -2,7 +2,7 @@ import { Model } from "@/components/chat/chat-ui";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createOpenAI } from "@ai-sdk/openai";
 
-const openai = createOpenAI({
+export const openai = createOpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
@@ -13,6 +13,7 @@ const gemini = createGoogleGenerativeAI({
 export const models = {
   openai: openai("gpt-4o-mini-2024-07-18"),
   gemini: gemini("gemini-1.5-flash-latest"),
+  embeddingModel: openai.embedding("text-embedding-3-small"),
 } as const;
 
 export function getModel(model: Model) {
