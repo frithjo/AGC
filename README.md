@@ -1,5 +1,9 @@
 # Testing ai-sdk tool calling
 
+> Improving (cooking rn)
+
+<img width="1440" alt="Screenshot 2025-03-04 at 2 40 40 AM" src="https://github.com/user-attachments/assets/071b9eab-a0de-4ff0-80b5-b73f8c894bcf" />
+
 ### Composer Mode
 
 - It will have the context of notes/markdown editor so u can ask it to
