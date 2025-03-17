@@ -1,3 +1,4 @@
+import { Model } from "@/components/chat/chat-ui";
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
