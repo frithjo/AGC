@@ -1,6 +1,7 @@
 import { tool } from "ai";
 import { z } from "zod";
 
+
 export const getXSearch = tool({
   description: "Search X (formerly Twitter) for information",
   parameters: z.object({
@@ -24,3 +25,13 @@ export const getXSearch = tool({
     return data;
   },
 });
+
+// All tools work with DeepSeek models if they implement:
+interface ToolSupport {
+  web: true;
+  x: true;
+  url: true;
+  fileSearch: true;
+  notes: true;
+  whiteboard: true;
+}

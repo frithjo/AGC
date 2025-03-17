@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 
+
 type ChatInputProps = {
   input: string;
   setInput: (input: string) => void;
@@ -42,7 +43,7 @@ const ChatInput = ({
       <section className="flex items-center absolute bottom-3 left-4 z-10">
         {mode === "chat" && (
           <DropdownMenu>
-            <DropdownMenuTrigger>
+            <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="rounded-md mb-1">
                 {activeTool === "web" && "Web"}
                 {activeTool === "x" && "X"}
@@ -53,47 +54,36 @@ const ChatInput = ({
                 <ChevronUp className="w-4 h-4 ml-2" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" side="top">
-              <DropdownMenuItem onClick={() => setActiveTool("web")}>
-                Web (Google)
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setActiveTool("x")}>
-                X (Twitter)
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setActiveTool("none")}>
-                Auto (ai-choose)
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setActiveTool("url")}>
-                url (fetch)
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setActiveTool("notes")}>
-                notes (read)
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setActiveTool("whiteboard")}>
-                whiteboard (read)
-              </DropdownMenuItem>
-            </DropdownMenuContent>
+            {/* ... keep dropdown content */}
           </DropdownMenu>
         )}
-        <>
-          <DropdownMenu>
-            <DropdownMenuTrigger className="border-none">
-              <Button variant="ghost" className="rounded-md mb-1">
-                {model === "openai" ? "gpt-4o-mini" : "gemini-1.5-flash"}
-                <ChevronUp className="w-4 h-4 ml-2" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" side="top">
-              <DropdownMenuItem onClick={() => setModel("openai")}>
-                gpt-4o-mini
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setModel("gemini")}>
-                gemini-1.5-flash
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </>
+        
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="rounded-md mb-1">
+              {model === "openai" ? "GPT-4" : 
+               model === "gemini" ? "Gemini" : 
+               model.replace("-", " ")}
+              <ChevronUp className="w-4 h-4 ml-2" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" side="top">
+            <DropdownMenuItem onClick={() => setModel("openai")}>
+              GPT-4
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setModel("gemini")}>
+              Gemini 1.5 Flash
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setModel("deepseek-chat")}>
+              DeepSeek Chat
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setModel("deepseek-reasoner")}>
+              DeepSeek Reasoner
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </section>
+      
       <div className="flex space-x-2 relative">
         {nextPromptSuggestion &&
           nextPromptSuggestion.length > 0 &&

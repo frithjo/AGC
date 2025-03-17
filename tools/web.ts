@@ -30,3 +30,13 @@ export const getWebSearch = tool({
     }
   },
 });
+
+// All tools work with DeepSeek models if they implement:
+interface ToolSupport {
+  web: true;
+  x: true;
+  url: true;
+  fileSearch: true;
+  notes: true;
+  whiteboard: true;
+}

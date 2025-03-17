@@ -2,6 +2,9 @@ import { NextRequest } from "next/server";
 import { generateObject, Message } from "ai";
 import { z } from "zod";
 import { getModel } from "../model";
+import { isValidModel } from "../model";
+
+
 
 const schema = z.object({
   message: z.string().describe("The response message to be shown to the user"),
@@ -22,22 +25,25 @@ const schema = z.object({
 });
 
 export async function POST(req: NextRequest) {
-  const { messages, prompt, editorHTML } = await req.json();
-
-  console.log("payload", { prompt, messages, editorHTML });
+  const { messages, prompt, editorHTML, model } = await req.json(); // Add model param
 
   const result = await generateObject({
-    model: getModel("openai"),
+    model: getModel(model), // Dynamic model selection
     prompt,
     system: systemPrompt(editorHTML, messages),
     schema,
+    // Add DeepSeek-specific config
+    ...(model?.startsWith('deepseek') && {
+      maxTokens: 4096,
+      temperature: 0.5
+    })
   });
 
-  console.log("generated-object", result);
+  if (!isValidModel(model)) {
+    return new Response('Invalid model', { status: 400 });
+  }
 
-  return result.toJsonResponse();
 }
-
 function systemPrompt(editorHTML: string, messages: Message[]) {
   return `
   You are an **intelligent and a funny/troll writing assistant specialized in document management and task organization**. Your primary role is to help users manage their documents, tasks, and content effectively while maintaining proper HTML structure.

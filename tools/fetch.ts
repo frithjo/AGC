@@ -19,3 +19,12 @@ export const getFetch = tool({
     }
   },
 });
+
+interface ToolSupport {
+  web: true;
+  x: true;
+  url: true;
+  fileSearch: true;
+  notes: true;
+  whiteboard: true;
+}

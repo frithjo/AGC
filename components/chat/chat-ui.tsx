@@ -25,7 +25,7 @@ type ResponseObject = {
 
 export type Mode = "chat" | "composer";
 export type Tools = "web" | "x" | "none" | "url" | "notes" | "whiteboard";
-export type Model = "openai" | "gemini";
+export type Model = 'openai' | 'gemini' | 'deepseek-chat' | 'deepseek-reasoner';
 
 export function ChatUI({
   setEditorContent,

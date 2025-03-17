@@ -1,6 +1,7 @@
-import { getModel } from "../model";
-import { streamText } from "ai";
 import { NextRequest } from "next/server";
+import { streamText } from "ai";
+import { getModel, isValidModel } from "../model";
+import type { Model } from "@/components/chat/chat-ui";
 import { getXSearch } from "@/tools/x";
 import { getWebSearch } from "@/tools/web";
 import { getFetch } from "@/tools/fetch";
@@ -11,6 +12,11 @@ import { analyzeWhiteboard } from "@/tools/whiteboard";
 export async function POST(req: NextRequest) {
   const { tool, messages, model, notes, image } = await req.json();
 
+  // Validate model first
+  if (!isValidModel(model)) {
+    return new Response('Invalid model', { status: 400 });
+  }
+
   console.log({
     tool,
     model,
@@ -18,36 +24,40 @@ export async function POST(req: NextRequest) {
     image: tool === "whiteboard" ? image : "",
   });
 
-  const result = streamText({
-    model: getModel(model),
-    messages,
-    system: getSystemPrompt(tool),
-    tools: {
-      web: getWebSearch,
-      x: getXSearch,
-      url: getFetch,
-      fileSearch: doFileSearch,
-      notes: getNotes(notes),
-      whiteboard: analyzeWhiteboard(image),
-    },
-    experimental_activeTools: [
-      "web",
-      "x",
-      "url",
-      "fileSearch",
-      "notes",
-      "whiteboard",
-    ],
-    // toolChoice: tool === "none" ? "auto" : tool,
-    maxSteps: 3, // can be overwritten by useChat hook
-    onStepFinish(event) {
-      console.log("--------------STEP FINISH------------------");
-      console.log(event);
-      console.log("--------------------------------");
-    },
-  });
+  try {
+    const result = await streamText({
+      model: getModel(model),
+      messages,
+      system: getSystemPrompt(tool),
+      tools: {
+        web: getWebSearch,
+        x: getXSearch,
+        url: getFetch,
+        fileSearch: doFileSearch,
+        notes: getNotes(notes),
+        whiteboard: analyzeWhiteboard(image),
+      },
+      experimental_activeTools: [
+        "web",
+        "x",
+        "url",
+        "fileSearch",
+        "notes",
+        "whiteboard",
+      ],
+      maxSteps: 3,
+      onStepFinish(event) {
+        console.log("--------------STEP FINISH------------------");
+        console.log(event);
+        console.log("--------------------------------");
+      },
+    });
 
-  return result.toDataStreamResponse();
+    return result.toDataStreamResponse();
+  } catch (error) {
+    console.error("Error processing request:", error);
+    return new Response('Internal Server Error', { status: 500 });
+  }
 }
 
 function getSystemPrompt(tool: string) {

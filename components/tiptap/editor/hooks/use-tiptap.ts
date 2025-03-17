@@ -1,10 +1,11 @@
 "use client";
 
+"use client";
+
 import Placeholder from "@tiptap/extension-placeholder";
 import {
   type Content,
   type Editor,
-  type JSONContent,
   useEditor,
 } from "@tiptap/react";
 import { useCallback, useEffect } from "react";
@@ -12,7 +13,7 @@ import { defaultExtensions } from "../extensions";
 import { uploadFn } from "../image-upload";
 import { slashCommandExtension } from "../slash-command";
 import { handleSlashCommandNavigation } from "../ui/slash-command-list";
-import { type Output, getOutput } from "../utils";
+import { getOutput } from "../utils";
 import { useThrottle } from "./use-throttle";
 import { cn } from "@/lib/utils";
 
@@ -31,8 +32,6 @@ export function useTiptap({
   initialContent: string;
   throttleDelay?: number;
 }): Editor | null {
-  let initialValue: string = initialContent;
-
   const throttledSetValue = useThrottle(
     (value: Content) => onChange(value as string),
     throttleDelay
@@ -59,8 +58,15 @@ export function useTiptap({
       ...(slashEnabled ? [slashCommandExtension] : []),
     ],
     onUpdate: ({ editor }) => handleUpdate(editor),
-    content: initialValue,
+    content: initialContent,
     editorProps: {
+      attributes: {
+        class: cn(
+          "bg-background p-4 relative border rounded-2xl focus-within:border-primary min-h-screen",
+          "tiptap ProseMirror prose prose-lg dark:prose-invert prose-headings:font-title font-default focus:outline-none max-w-full",
+          editorClassName
+        ),
+      },
       handleDOMEvents: {
         keydown: (_view, event) => handleSlashCommandNavigation(event),
       },
@@ -91,14 +97,8 @@ export function useTiptap({
         }
         return false;
       },
-      attributes: {
-        class: cn(
-          "bg-background p-4 relative border rounded-2xl focus-within:border-primary min-h-screen",
-          "tiptap ProseMirror prose prose-lg dark:prose-invert prose-headings:font-title font-default focus:outline-none max-w-full",
-          editorClassName
-        ),
-      },
     },
+    immediatelyRender: false,
   });
 
   useEffect(() => {
